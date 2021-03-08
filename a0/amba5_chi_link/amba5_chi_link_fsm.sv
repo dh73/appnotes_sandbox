@@ -1,6 +1,5 @@
 /* dh[notes]: This module is perfectly a synthesizable RTL,
- *            for a model to run FPV, it must be synthesizable.
- */
+ *            for a model to run FPV, it must be synthesizable.*/
 `default_nettype none
 `ifndef _CHI5_PKG_
  `define _CHI5_PKG_
@@ -102,7 +101,6 @@ module amba5_chi_link_fsm
    logic banned_output;
    logic completed_path;
 
-   // Force Bug1
    assign initial_current_state = fsm_lnk_ps.chi_tx_t == TxStop && fsm_lnk_ps.chi_rx_t == RxStop;
    assign initial_next_state    = fsm_lnk_ps.chi_tx_t == TxAct || fsm_lnk_ps.chi_rx_t == RxAct;
    ap_initial_path: assert property (initial_current_state && (txlinkactivereq || rxlinkactivereq)
@@ -110,19 +108,19 @@ module amba5_chi_link_fsm
    wp_initial_path: cover property (initial_current_state && (txlinkactivereq || rxlinkactivereq)
 				    ##1 initial_next_state);
 
-   // for this bug2, this path is not implemented and the controller does not execute the paths to direct it towards that state
+   // for this bug1, this path is not implemented and the controller does not execute the paths to transition to that state
    assign banned_output = fsm_lnk_ps.chi_tx_t == TxStop && fsm_lnk_ps.chi_rx_t == RxRunp;
    ap_banned_output: assert property (initial_current_state |-> ##[+] banned_output);
    wp_banned_output: cover property (initial_current_state  ##[+] banned_output);
 
-   // Bug3 current inputs not leading to this scenario
+   // Bug2 current inputs are not leading to this scenario
    assign completed_path = fsm_lnk_ps.chi_tx_t == TxDeact && fsm_lnk_ps.chi_rx_t == RxDeact;
    ap_completed_path: assert property (initial_current_state |-> ##[+] completed_path);
    wp_completed_path: cover property (initial_current_state ##[+] completed_path);
 `endif
 endmodule // amba5_chi_link_fsm
 /* This module is not exactly how a link interaction is done.
- * It is just for demonstration purposes. A real link needs 
+ * It is just for demonstration purposes. A real link needs
  * flits, credits, etc. */
 module test
   import chi5_link::*;
@@ -147,18 +145,13 @@ module test
       txlinkactiveack = 1'b0;
       rxlinkactiveack = 1'b0;
       case (ps)
-	s1: begin rxlinkactivereq = 1'b0;/*1'b1*/ txlinkactivereq = 1'b0; ns = s2; end //TxStop/RxStop
+	s1: begin ns = s2; end //TxStop/RxStop
 	s2: begin {txlinkactivereq, rxlinkactivereq} = 2'b11; ns = s3; end //TxStop/RxAct
-`ifdef BUG
-	s3: begin /*{*/txlinkactiveack = 1'b1; /*, rxlinkactivereq} = 2'b11;*/ ns = s4; end // Bug2 remove !rxlinkactivereq
-`else
-	s3: begin {txlinkactiveack, rxlinkactivereq} = 2'b11; ns = s4; end // TxAct/RxRun
-`endif
+	s3: begin txlinkactiveack = 1'b1; ns = s4; end // TxAct/RxRun
 	s4: begin {rxlinkactivereq, txlinkactivereq} = 2'b00; ns = stop; end //TxRun/RxRun
 	stop:;
       endcase // unique case (ps)
    end
-
    amba5_chi_link_fsm amba5_chk
      (.*, .ACLK(clk), .ARESETn(rstn));
 endmodule // test
