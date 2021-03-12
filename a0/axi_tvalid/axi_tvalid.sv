@@ -11,7 +11,7 @@ module axi4_tvalid
     * Ref: 2.7.2 Reset, p2-11, Figure 2-4. */
    logic 	first_point;
    always_ff @(posedge ACLK) begin
-      if (!ARESETn) first_point <= 1'b0; // Should be 1'b1
+      if (!ARESETn) first_point <= 1'b0;
       else          first_point <= 1'b0;
    end
 

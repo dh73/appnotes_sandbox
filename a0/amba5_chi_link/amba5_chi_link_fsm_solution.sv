@@ -91,11 +91,11 @@ module amba5_chi_link_fsm
       endcase // unique case (fsm_lnk_ps)
    end // always_comb
    assign chi_link_states = fsm_lnk_ps;
-   
+
 `ifdef FORMAL
    default clocking fpv_clk @(posedge ACLK); endclocking
    default disable iff (!ARESETn);
-   
+
    logic initial_current_state;
    logic initial_next_state;
    logic banned_output;
