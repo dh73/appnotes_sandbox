@@ -117,6 +117,7 @@ module amba5_chi_link_fsm
    assign completed_path = fsm_lnk_ps.chi_tx_t == TxDeact && fsm_lnk_ps.chi_rx_t == RxDeact;
    ap_completed_path: assert property (initial_current_state |-> ##[+] completed_path);
    wp_completed_path: cover property (initial_current_state ##[+] completed_path);
+   we_completed_path: cover property (initial_current_state ##4 1'b1);
  `endif
 `endif
 endmodule // amba5_chi_link_fsm
